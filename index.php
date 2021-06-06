@@ -1,5 +1,5 @@
 <?php
-session_start();
+    session_start();
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -14,18 +14,28 @@ session_start();
     <script src="jq.js"></script>
     <script type="text/javascript">
         $(document).ready(function(){
-            function loadData(page_number){
+            var sortType = "";
+
+            function loadData(page_number, sort){
             $.ajax({
                 url  : "load_data.php",
-                type : "POST",
+                type : "GET",
                 cache: false,
-                data : {page:page_number},
+                data : {
+                    page:page_number,
+                    sort_type: sort,
+                },
                 success:function(response){
-                $("#posts").html(response);
+                    $("#posts").html(response);
                 }
             });
             }
             loadData();
+
+            $(document).on("click", "#right li a", function(e){
+                sortType = $(this).attr('id');
+                loadData(1, sortType);
+            });
             
             // Пагинация
             $(document).on("click", ".pagination a", function(e){
@@ -38,46 +48,57 @@ session_start();
                     var pageId = $(this).attr("id");
                 }
 
-                loadData(pageId);
+                loadData(pageId, sortType);
             });
 
-            $('.like').on('click', function(){
-                var postid = $(this).data('id');
-                    $post = $(this);
+            $(document).ajaxError(function (e, xhr, settings) {
+                if (xhr.status == 401) {
+                    document.location = "login.php";
+                } else  if (xhr.status == 403) {
+                    document.location = "permission_denied.php";
+                }
+            });
+
+            $(document).on("click", "span[class~='unlike']", function(e){
+                var postid = $(this).data("id");
 
                 $.ajax({
-                    url: 'like.php',
+                    url: "like.php",
                     type: 'post',
                     data: {
-                        'liked': 1,
-                        'post_id': postid
+                        liked: 1,
+                        post_id: postid
                     },
                     success: function(response){
-                        $post.parent().find('span.likes_count').text(response + " likes");
-                        $post.addClass('hide');
-                        $post.siblings().removeClass('hide');
+                        var likes = $(e.target);
+                        var count = likes.parent().find(".likes-count");
+                        count.text(response);
+                        likes.removeClass();
+                        likes.addClass("like fa fa-thumbs-up");
                     }
                 });
 		});
 
-		$('.unlike').on('click', function(){
-			var postid = $(this).data('id');
-		    $post = $(this);
+        $(document).on("click", "span[class~='like']", function(e){
+                var postid = $(this).data("id");
 
-			$.ajax({
-				url: 'like.php',
-				type: 'post',
-				data: {
-					'unliked': 1,
-					'post_id': postid
-				},
-				success: function(response){
-					$post.parent().find('span.likes_count').text(response + " likes");
-					$post.addClass('hide');
-					$post.siblings().removeClass('hide');
-				}
-			});
+                $.ajax({
+                    url: "like.php",
+                    type: "post",
+                    data: {
+                        unliked: 1,
+                        post_id: postid
+                    },
+                    success: function(response){
+                        var likes = $(e.target);
+                        var count = likes.parent().find(".likes-count");
+                        count.text(response);
+                        likes.removeClass();
+                        likes.addClass("unlike fa fa-thumbs-o-up");
+                    }
+                });
 		});
+
         });
 </script>
 </head>
@@ -88,10 +109,12 @@ session_start();
         <div class="container">
             <div class="header__inner">
                 <a href="index.php">Анекдотный</a>
+                <a href="admin.php">Админская панель</a>
+                <a href="suggest_anecdote.php">Предложить свой анекдот</a>
                 <nav class="nav">
                     <?php
                     if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-                        echo '<div><a href="profile/'.$_SESSION["id"].'">'.$_SESSION["username"].'</a> <a href="logout.php">Logout</a></div>';
+                        echo '<div><a href="profile.php">'.$_SESSION["username"].'</a> <a href="logout.php">Logout</a></div>';
                     } else {
                         echo "<div>
                                 <a href='login.php'>Sign in</a>
@@ -106,8 +129,9 @@ session_start();
 
     <div class="content">
         <div class="container">
-            <div class="right">
-                asd
+            <div class="right" id='right'>
+                <li><a id="sort-popularity">Сортировать по популярности</a></li>
+                <li><a id="sort-time">Сортировать по дате добавления</a></li>
             </div>
             <div class="center">
                 <div class="posts" id="posts">
@@ -120,7 +144,11 @@ session_start();
 
     <div class="footer">
         <div class="container">
-
+            <div class="footer__inner">
+                Сабуров Л.М.<br>
+                БСБО-08-18<br>
+                2021
+            </div>
         </div>
     </div>
 

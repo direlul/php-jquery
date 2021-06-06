@@ -1,5 +1,6 @@
 .like, .unlike, .likes_count {
 	color: blue;
+	cursor: pointer;
 }
 .hide {
 	display: none;

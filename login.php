@@ -126,6 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="container">
             <div class="header__inner">
                 <a href="index.php">Анекдотный</a>
+                <a href="suggest_anecdote.php">Предложить свой анекдот</a>
                 <nav class="nav">
                     <?php
                     if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
@@ -173,7 +174,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="footer">
         <div class="container">
-
+            <div class="footer__inner">
+                Сабуров Л.М.<br>
+                БСБО-08-18<br>
+                2021
+            </div>
         </div>
     </div>
 </body>

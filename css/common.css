@@ -1,10 +1,10 @@
 body {
     margin: 0;
     font-family: 'Montserrat', sans-serif;
-
     font-size: 15px;
     line-height: 1.6;
     color: #333;
+    background-color: rgb(237, 239, 241);
 }
 
 .container {
@@ -13,4 +13,3 @@ body {
     padding: 5px;
     margin: 0 auto;
 }
-

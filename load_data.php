@@ -12,8 +12,8 @@
 
     $totalPage = ceil($totalRecords/$limit);
 
-    if (isset($_POST['page'])) {
-        $page = $_POST['page'];
+    if (isset($_GET['page'])) {
+        $page = $_GET['page'];
         if ($page < 1) {
             $page = 1;
         } else if ($page > $totalPage) {
@@ -27,7 +27,19 @@
 
     $offset = ($page - 1) * $limit;
 
-    $query = "SELECT * FROM posts LIMIT $offset, $limit";
+    if (isset($_GET['sort_type'])) {
+        if ($_GET['sort_type'] == 'sort-popularity') {
+            $query = "SELECT * FROM posts ORDER BY likes DESC LIMIT $offset, $limit";
+        } else if ($_GET['sort_type'] == 'sort-time') {
+            $query = "SELECT * FROM posts ORDER BY id DESC LIMIT $offset, $limit";
+        } else {
+            $query = "SELECT * FROM posts LIMIT $offset, $limit";
+        }
+    } else {
+        $query = "SELECT * FROM posts LIMIT $offset, $limit";
+    }
+
+
 
     $result = mysqli_query($link, $query);
 
@@ -35,7 +47,12 @@
 
     if (mysqli_num_rows($result) > 0) {
         while ($row = mysqli_fetch_assoc($result)) {
-            $liked = mysqli_query($link, "SELECT * FROM likes WHERE user_id='{$_SESSION["id"]}' AND post_id='{$row["id"]}'");
+            if (!isset($_SESSION['id'])) {
+                $liked = mysqli_query($link, "SELECT * FROM likes WHERE user_id=100000 AND post_id='{$row["id"]}'");;
+            } else {
+                $liked = mysqli_query($link, "SELECT * FROM likes WHERE user_id='{$_SESSION["id"]}' AND post_id='{$row["id"]}'");
+            }
+            
 
             $output.= '
             <div class="post">
@@ -46,17 +63,14 @@
                 <div class="post__footer">
                 <div class="post__rating">';
                 if (mysqli_num_rows($liked) == 1 ) {
-                    $output.= '<span class="unlike fa fa-thumbs-up" data-id="'.$row['id'].'"></span>
-                    <span class="like hide fa fa-thumbs-o-down" data-id="'.$row['id'].'"></span> ';
+                    $output.= '<span class="like fa fa-thumbs-up" data-id="'.$row['id'].'"></span>';
                 } else {
-                    $output.= '<span class="like fa fa-thumbs-o-up" data-id="'.$row['id'].'"></span> 
-                    <span class="unlike hide fa fa-thumbs-down" data-id="'.$row['id'].'"></span> ';
+                    $output.= '<span class="unlike fa fa-thumbs-o-up" data-id="'.$row['id'].'"></span>';
                 }
 
                 $output.='<span class="likes-count">'.$row['likes'].'</span>
                 </div>
-                <a href="post.php?id='.$row["id"].'">Комментировать</a>
-                    <a href="user.php?id='.$row["author_id"].'">'.$row["author_name"].'</a>
+                    <a href="profile.php?id='.$row["author_id"].'">'.$row["author_name"].'</a>
                 </div>
             </div>
             ';
